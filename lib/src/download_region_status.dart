@@ -21,5 +21,5 @@ class Error extends DownloadRegionStatus {
 
   @override
   String toString() =>
-      "Instance of 'DownloadRegionStatus.Error', cause = $cause";
+      "Instance of 'DownloadRegionStatus.Error', cause = ${cause.toString()}";
 }

@@ -19,10 +19,10 @@ class OfflineRegionDefinition {
 
   @override
   String toString() =>
-      "OfflineRegionDefinition, bounds = $bounds, mapStyleUrl = $mapStyleUrl, minZoom = $minZoom, maxZoom = $maxZoom";
+      "$runtimeType, bounds = $bounds, mapStyleUrl = $mapStyleUrl, minZoom = $minZoom, maxZoom = $maxZoom";
 
   Map<String, dynamic> toMap() {
-    final data = <String, dynamic>{};
+    final Map<String, dynamic> data = <String, dynamic>{};
     data['bounds'] = bounds.toList();
     data['mapStyleUrl'] = mapStyleUrl;
     data['minZoom'] = minZoom;
@@ -72,5 +72,5 @@ class OfflineRegion {
 
   @override
   String toString() =>
-      "OfflineRegion, id = $id, definition = $definition, metadata = $metadata";
+      "$runtimeType, id = $id, definition = $definition, metadata = $metadata";
 }

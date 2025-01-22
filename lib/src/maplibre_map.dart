@@ -60,8 +60,9 @@ class MapLibreMap extends StatefulWidget {
       AnnotationType.circle,
     ],
   })  : assert(
-          myLocationRenderMode == MyLocationRenderMode.normal ||
-              myLocationEnabled,
+          myLocationRenderMode != MyLocationRenderMode.normal
+              ? myLocationEnabled
+              : true,
           "$myLocationRenderMode requires [myLocationEnabled] set to true.",
         ),
         assert(annotationOrder.length <= 4),
@@ -261,7 +262,7 @@ class _MapLibreMapState extends State<MapLibreMap> {
     assert(
         widget.annotationOrder.toSet().length == widget.annotationOrder.length,
         "annotationOrder must not have duplicate types");
-    final creationParams = <String, dynamic>{
+    final Map<String, dynamic> creationParams = <String, dynamic>{
       'initialCameraPosition': widget.initialCameraPosition.toMap(),
       'styleString': widget.styleString,
       'options': _MapLibreMapOptions.fromWidget(widget).toMap(),
@@ -281,7 +282,7 @@ class _MapLibreMapState extends State<MapLibreMap> {
   }
 
   @override
-  Future<void> dispose() async {
+  void dispose() async {
     super.dispose();
     if (_controller.isCompleted) {
       final controller = await _controller.future;
@@ -292,22 +293,24 @@ class _MapLibreMapState extends State<MapLibreMap> {
   @override
   void didUpdateWidget(MapLibreMap oldWidget) {
     super.didUpdateWidget(oldWidget);
-    final newOptions = _MapLibreMapOptions.fromWidget(widget);
-    final updates = _maplibreMapOptions.updatesMap(newOptions);
+    final _MapLibreMapOptions newOptions =
+        _MapLibreMapOptions.fromWidget(widget);
+    final Map<String, dynamic> updates =
+        _maplibreMapOptions.updatesMap(newOptions);
     _updateOptions(updates);
     _maplibreMapOptions = newOptions;
   }
 
-  Future<void> _updateOptions(Map<String, dynamic> updates) async {
+  void _updateOptions(Map<String, dynamic> updates) async {
     if (updates.isEmpty) {
       return;
     }
-    final controller = await _controller.future;
+    final MapLibreMapController controller = await _controller.future;
     controller._updateMapOptions(updates);
   }
 
   Future<void> onPlatformViewCreated(int id) async {
-    final controller = MapLibreMapController(
+    final MapLibreMapController controller = MapLibreMapController(
       maplibrePlatform: _maplibrePlatform,
       initialCameraPosition: widget.initialCameraPosition,
       onStyleLoadedCallback: () {
@@ -329,7 +332,9 @@ class _MapLibreMapState extends State<MapLibreMap> {
     );
     await _maplibrePlatform.initPlatform(id);
     _controller.complete(controller);
-    widget.onMapCreated?.call(controller);
+    if (widget.onMapCreated != null) {
+      widget.onMapCreated!(controller);
+    }
   }
 }
 
@@ -359,28 +364,29 @@ class _MapLibreMapOptions {
     this.attributionButtonMargins,
   });
 
-  _MapLibreMapOptions.fromWidget(MapLibreMap map)
-      : this(
-          compassEnabled: map.compassEnabled,
-          cameraTargetBounds: map.cameraTargetBounds,
-          styleString: map.styleString,
-          minMaxZoomPreference: map.minMaxZoomPreference,
-          rotateGesturesEnabled: map.rotateGesturesEnabled,
-          scrollGesturesEnabled: map.scrollGesturesEnabled,
-          tiltGesturesEnabled: map.tiltGesturesEnabled,
-          trackCameraPosition: map.trackCameraPosition,
-          zoomGesturesEnabled: map.zoomGesturesEnabled,
-          doubleClickZoomEnabled:
-              map.doubleClickZoomEnabled ?? map.zoomGesturesEnabled,
-          myLocationEnabled: map.myLocationEnabled,
-          myLocationTrackingMode: map.myLocationTrackingMode,
-          myLocationRenderMode: map.myLocationRenderMode,
-          logoViewMargins: map.logoViewMargins,
-          compassViewPosition: map.compassViewPosition,
-          compassViewMargins: map.compassViewMargins,
-          attributionButtonPosition: map.attributionButtonPosition,
-          attributionButtonMargins: map.attributionButtonMargins,
-        );
+  static _MapLibreMapOptions fromWidget(MapLibreMap map) {
+    return _MapLibreMapOptions(
+      compassEnabled: map.compassEnabled,
+      cameraTargetBounds: map.cameraTargetBounds,
+      styleString: map.styleString,
+      minMaxZoomPreference: map.minMaxZoomPreference,
+      rotateGesturesEnabled: map.rotateGesturesEnabled,
+      scrollGesturesEnabled: map.scrollGesturesEnabled,
+      tiltGesturesEnabled: map.tiltGesturesEnabled,
+      trackCameraPosition: map.trackCameraPosition,
+      zoomGesturesEnabled: map.zoomGesturesEnabled,
+      doubleClickZoomEnabled:
+          map.doubleClickZoomEnabled ?? map.zoomGesturesEnabled,
+      myLocationEnabled: map.myLocationEnabled,
+      myLocationTrackingMode: map.myLocationTrackingMode,
+      myLocationRenderMode: map.myLocationRenderMode,
+      logoViewMargins: map.logoViewMargins,
+      compassViewPosition: map.compassViewPosition,
+      compassViewMargins: map.compassViewMargins,
+      attributionButtonPosition: map.attributionButtonPosition,
+      attributionButtonMargins: map.attributionButtonMargins,
+    );
+  }
 
   final bool? compassEnabled;
 
@@ -427,7 +433,7 @@ class _MapLibreMapOptions {
   };
 
   Map<String, dynamic> toMap() {
-    final optionsMap = <String, dynamic>{};
+    final Map<String, dynamic> optionsMap = <String, dynamic>{};
 
     void addIfNonNull(String fieldName, dynamic value) {
       if (value != null) {
@@ -468,7 +474,7 @@ class _MapLibreMapOptions {
   }
 
   Map<String, dynamic> updatesMap(_MapLibreMapOptions newOptions) {
-    final prevOptionsMap = toMap();
+    final Map<String, dynamic> prevOptionsMap = toMap();
     final newOptionsMap = newOptions.toMap();
 
     // if any gesture is updated also all other gestures have to the saved to

@@ -8,7 +8,7 @@ typedef OnMapClickCallback = void Function(
     Point<double> point, LatLng coordinates);
 
 typedef OnFeatureInteractionCallback = void Function(
-    dynamic id, Point<double> point, LatLng coordinates, String layerId);
+    dynamic id, Point<double> point, LatLng coordinates);
 
 typedef OnFeatureDragnCallback = void Function(dynamic id,
     {required Point<double> point,
@@ -93,14 +93,13 @@ class MapLibreMapController extends ChangeNotifier {
     _maplibrePlatform.onFeatureTappedPlatform.add((payload) {
       for (final fun
           in List<OnFeatureInteractionCallback>.from(onFeatureTapped)) {
-        fun(payload["id"], payload["point"], payload["latLng"],
-            payload["layerId"]);
+        fun(payload["id"], payload["point"], payload["latLng"]);
       }
     });
 
     _maplibrePlatform.onFeatureDraggedPlatform.add((payload) {
       for (final fun in List<OnFeatureDragnCallback>.from(onFeatureDrag)) {
-        final enmDragEventType = DragEventType.values
+        final DragEventType enmDragEventType = DragEventType.values
             .firstWhere((element) => element.name == payload["eventType"]);
         fun(payload["id"],
             point: payload["point"],
@@ -126,52 +125,71 @@ class MapLibreMapController extends ChangeNotifier {
       if (cameraPosition != null) {
         _cameraPosition = cameraPosition;
       }
-      onCameraIdle?.call();
+      if (onCameraIdle != null) {
+        onCameraIdle!();
+      }
       notifyListeners();
     });
 
     _maplibrePlatform.onMapStyleLoadedPlatform.add((_) {
       final interactionEnabled = annotationConsumeTapEvents.toSet();
-      for (final type in annotationOrder.toSet()) {
+      for (var type in annotationOrder.toSet()) {
         final enableInteraction = interactionEnabled.contains(type);
         switch (type) {
           case AnnotationType.fill:
             fillManager = FillManager(this,
                 onTap: onFillTapped.call, enableInteraction: enableInteraction);
+            break;
           case AnnotationType.line:
             lineManager = LineManager(this,
                 onTap: onLineTapped.call, enableInteraction: enableInteraction);
+            break;
           case AnnotationType.circle:
             circleManager = CircleManager(this,
                 onTap: onCircleTapped.call,
                 enableInteraction: enableInteraction);
+            break;
           case AnnotationType.symbol:
             symbolManager = SymbolManager(this,
                 onTap: onSymbolTapped.call,
                 enableInteraction: enableInteraction);
+            break;
+          default:
         }
       }
-      onStyleLoadedCallback?.call();
+      if (onStyleLoadedCallback != null) {
+        onStyleLoadedCallback!();
+      }
     });
 
     _maplibrePlatform.onMapClickPlatform.add((dict) {
-      onMapClick?.call(dict['point'], dict['latLng']);
+      if (onMapClick != null) {
+        onMapClick!(dict['point'], dict['latLng']);
+      }
     });
 
     _maplibrePlatform.onMapLongClickPlatform.add((dict) {
-      onMapLongClick?.call(dict['point'], dict['latLng']);
+      if (onMapLongClick != null) {
+        onMapLongClick!(dict['point'], dict['latLng']);
+      }
     });
 
     _maplibrePlatform.onCameraTrackingChangedPlatform.add((mode) {
-      onCameraTrackingChanged?.call(mode);
+      if (onCameraTrackingChanged != null) {
+        onCameraTrackingChanged!(mode);
+      }
     });
 
     _maplibrePlatform.onCameraTrackingDismissedPlatform.add((_) {
-      onCameraTrackingDismissed?.call();
+      if (onCameraTrackingDismissed != null) {
+        onCameraTrackingDismissed!();
+      }
     });
 
     _maplibrePlatform.onMapIdlePlatform.add((_) {
-      onMapIdle?.call();
+      if (onMapIdle != null) {
+        onMapIdle!();
+      }
     });
     _maplibrePlatform.onUserLocationUpdatedPlatform.add((location) {
       onUserLocationUpdated?.call(location);
@@ -911,7 +929,8 @@ class MapLibreMapController extends ChangeNotifier {
   /// The returned [Future] completes with the added circle once listeners have
   /// been notified.
   Future<Circle> addCircle(CircleOptions options, [Map? data]) async {
-    final effectiveOptions = CircleOptions.defaultOptions.copyWith(options);
+    final CircleOptions effectiveOptions =
+        CircleOptions.defaultOptions.copyWith(options);
     final circle = Circle(getRandomString(), effectiveOptions, data);
     await circleManager!.add(circle);
     notifyListeners();
@@ -1005,7 +1024,8 @@ class MapLibreMapController extends ChangeNotifier {
   /// The returned [Future] completes with the added fill once listeners have
   /// been notified.
   Future<Fill> addFill(FillOptions options, [Map? data]) async {
-    final effectiveOptions = FillOptions.defaultOptions.copyWith(options);
+    final FillOptions effectiveOptions =
+        FillOptions.defaultOptions.copyWith(options);
     final fill = Fill(getRandomString(), effectiveOptions, data);
     await fillManager!.add(fill);
     notifyListeners();
@@ -1111,10 +1131,6 @@ class MapLibreMapController extends ChangeNotifier {
   Future invalidateAmbientCache() async {
     return _maplibrePlatform.invalidateAmbientCache();
   }
-
-  // Future clearAmbientCache() async {
-  //   return _maplibrePlatform.clearAmbientCache();
-  // }
 
   /// Get last my location
   ///
