@@ -221,7 +221,6 @@ final class MapLibreMapController
   @Override
   public void onMapReady(MapLibreMap mapLibreMap) {
     this.mapLibreMap = mapLibreMap;
-    this.mapLibreMap.getUiSettings().setAttributionEnabled(false);
     if (mapReadyResult != null) {
       mapReadyResult.success(null);
       mapReadyResult = null;
