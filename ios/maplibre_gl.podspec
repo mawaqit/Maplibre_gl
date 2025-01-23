@@ -12,10 +12,10 @@ A new Flutter plugin.
   s.license          = { :file => '../LICENSE' }
   s.author           = { 'Your Company' => 'email@example.com' }
   s.source           = { :path => '.' }
-  s.source_files = 'maplibre_gl/Sources/maplibre_gl/**/*'
+  s.source_files = 'maplibre_gl_ios/Sources/maplibre_gl_ios/**/*'
   s.dependency 'Flutter'
   # When updating the dependency version,
-  # make sure to also update the version in Package.swift.
+  # make sure to also update the version Package.swift.
   s.dependency 'MapLibre', '6.5.0'
   s.swift_version = '5.0'
   s.ios.deployment_target = '12.0'
